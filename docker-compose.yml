@@ -1,0 +1,39 @@
+# docker compose up --build
+#
+# Levanta dos servicios:
+#   - mongo : base de datos MongoDB con un volumen persistente.
+#   - app   : la aplicación Javalin (se construye con el Dockerfile).
+#
+# La app espera a que MongoDB esté sana (healthcheck) antes de arrancar.
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: crud-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  app:
+    build: .
+    container_name: crud-app
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "7000:7000"
+    environment:
+      # La app lee estas variables de entorno (ver MongoDbConexion y Main).
+      URL_MONGO: "mongodb://mongo:27017"
+      DB_NOMBRE: "pucmm"
+      PORT: "7000"
+
+volumes:
+  mongo-data:

@@ -1,46 +1,62 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    // Fork mantenido del plugin Shadow (com.github.johnrengelman quedó descontinuado y
+    // no es compatible con Gradle 9). Genera el "fat/uber JAR" con todas las dependencias.
+    id 'com.gradleup.shadow' version '9.6.1'
 }
 
 group = 'edu.pucmm.pw'
 version = '1.0-SNAPSHOT'
 
-mainClassName = 'edu.pucmm.pw.Main'
+java {
+    // Gradle descarga y usa automáticamente un JDK 25 si no está instalado.
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+application {
+    mainClass = 'edu.pucmm.pw.Main'
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    //javalin
-    implementation("io.javalin:javalin:5.6.1")
-    //manejo de log.
-    implementation "org.slf4j:slf4j-simple:2.0.3"
-    // En la versión 5.3.X separaron las clases del renderizado en otro proyecto
-    implementation "io.javalin:javalin-rendering:5.6.1"
-    //Librería de plantilla.
-    implementation 'org.thymeleaf:thymeleaf:3.1.1.RELEASE'
-    //conversion a JSON
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")
+    // --- Javalin: micro-framework web ---
+    implementation 'io.javalin:javalin:6.7.0'
+    // Desde la versión 5.3 el renderizado de plantillas vive en un artefacto aparte.
+    implementation 'io.javalin:javalin-rendering:6.7.0'
 
-    //Librería de MongoDB
+    // --- Logging (implementación simple de SLF4J) ---
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
+
+    // --- Motor de plantillas Thymeleaf (CRUD tradicional) ---
+    implementation 'org.thymeleaf:thymeleaf:3.1.3.RELEASE'
+
+    // --- Serialización / deserialización JSON ---
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
+
+    // --- Driver síncrono de MongoDB ---
     // https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync
-    implementation group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.10.2'
+    implementation 'org.mongodb:mongodb-driver-sync:5.5.1'
 
-    //librería faker
-    implementation 'net.datafaker:datafaker:2.0.1'
+    // --- Generación de datos de prueba ---
+    implementation 'net.datafaker:datafaker:2.4.3'
 
+    // --- Generación de HTML desde Java ---
     implementation 'com.j2html:j2html:1.6.0'
 
-
+    // --- Pruebas ---
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-shadowJar{
-    archiveBaseName.set("crud-dns")
+shadowJar {
+    archiveBaseName.set('crud-dns')
     archiveClassifier.set('')
     archiveVersion.set('')
 }
