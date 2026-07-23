@@ -8,8 +8,11 @@
 
 services:
   mongo:
-    image: mongo:8
+    # Nota: mongo:8 resulta inestable en algunos entornos/kernels (crash SIGSEGV,
+    # exit 139). Se fija mongo:7 (estable) para que el proyecto funcione siempre.
+    image: mongo:7
     container_name: crud-mongo
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
@@ -24,6 +27,7 @@ services:
   app:
     build: .
     container_name: crud-app
+    restart: unless-stopped
     depends_on:
       mongo:
         condition: service_healthy

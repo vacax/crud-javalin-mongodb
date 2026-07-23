@@ -55,6 +55,12 @@ Para detener y borrar los datos:
 docker compose down -v
 ```
 
+> **Nota sobre la versión de MongoDB:** el `docker-compose.yml` usa `mongo:7`.
+> En algunos entornos/kernels la imagen `mongo:8` es inestable y el proceso
+> `mongod` termina abruptamente (crash `SIGSEGV`, *exit* 139), lo que provoca
+> errores 500 en la aplicación aunque la conexión esté bien configurada. Con
+> `mongo:7` el servicio es estable.
+
 ### Opción B — Gradle (local)
 
 Requiere una instancia de MongoDB accesible. Define las variables de entorno y
