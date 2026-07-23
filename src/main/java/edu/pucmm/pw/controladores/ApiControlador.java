@@ -5,7 +5,7 @@ import edu.pucmm.pw.entidades.Estudiante;
 import edu.pucmm.pw.servicios.EstudianteServices;
 import edu.pucmm.pw.util.BaseControlador;
 import edu.pucmm.pw.util.NoExisteEstudianteException;
-import io.javalin.Javalin;
+import io.javalin.config.JavalinConfig;
 
 
 import static io.javalin.apibuilder.ApiBuilder.*;
@@ -14,13 +14,13 @@ public class ApiControlador extends BaseControlador {
 
     private EstudianteServices estudianteServices = EstudianteServices.getInstancia();
 
-    public ApiControlador(Javalin app) {
-        super(app);
+    public ApiControlador(JavalinConfig config) {
+        super(config);
     }
 
     @Override
     public void aplicarRutas() {
-        app.routes(() -> {
+        config.routes.apiBuilder(() -> {
             path("/api", () -> {
                 /**
                  * Ejemplo de una API REST, implementando el CRUD
@@ -62,9 +62,10 @@ public class ApiControlador extends BaseControlador {
             });
         });
 
-        app.exception(NoExisteEstudianteException.class, (exception, ctx) -> {
+        //El manejo de excepciones se registra directamente en la configuración de rutas.
+        config.routes.exception(NoExisteEstudianteException.class, (exception, ctx) -> {
             ctx.status(404);
-            ctx.json(""+exception.getLocalizedMessage());
+            ctx.json("" + exception.getLocalizedMessage());
         });
     }
 }

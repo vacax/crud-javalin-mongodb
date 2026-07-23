@@ -4,9 +4,7 @@ package edu.pucmm.pw.controladores;
 import edu.pucmm.pw.entidades.Estudiante;
 import edu.pucmm.pw.servicios.EstudianteServices;
 import edu.pucmm.pw.util.BaseControlador;
-import io.javalin.Javalin;
-import io.javalin.rendering.JavalinRenderer;
-import io.javalin.rendering.template.JavalinThymeleaf;
+import io.javalin.config.JavalinConfig;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,21 +19,19 @@ public class CrudTradicionalControlador extends BaseControlador {
 
     EstudianteServices estudianteServices = EstudianteServices.getInstancia();
 
-    public CrudTradicionalControlador(Javalin app) {
-        super(app);
+    public CrudTradicionalControlador(JavalinConfig config) {
+        super(config);
     }
 
     /**
      * Las clases que implementan el sistema de plantilla están agregadas en PlantillasControlador.
+     * El motor de plantillas Thymeleaf se registra en {@code Main} con {@code config.fileRenderer(...)}.
      * http://localhost:7000/crud-simple/listar
      */
     @Override
     public void aplicarRutas() {
-        //Agregando la librería del render de Thymeleaf
-        JavalinRenderer.register(new JavalinThymeleaf(), ".html");
-
         //
-        app.routes(()->{
+        config.routes.apiBuilder(()->{
 
             /**
              * Ejemplo de como agrupar los endpoint utilizados.
@@ -57,7 +53,7 @@ public class CrudTradicionalControlador extends BaseControlador {
                 });
             });
         });
-        app.routes(() -> {
+        config.routes.apiBuilder(() -> {
             path("/crud-simple/", () -> {
 
 

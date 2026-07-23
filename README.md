@@ -1,18 +1,156 @@
 # CRUD - Javalin - MongoDB
 
-Proyecto demostrativo para integrar Javalin con la funcionalidades de un CRUD y MongoDB
+Proyecto **demostrativo** para el curso de Programación Web (PUCMM). Integra
+[Javalin](https://javalin.io/) con [MongoDB](https://www.mongodb.com/) e implementa
+un CRUD completo de estudiantes de dos formas distintas:
 
-## Tecnologías Utilizadas:
-* Javalin 5.6.1
-* JDK 17
-* MongoDB
-* Gradle 8.5
+1. **API REST** en JSON (`/api/estudiante`).
+2. **CRUD tradicional** renderizado en el servidor con plantillas Thymeleaf
+   (`/crud-simple/...`).
 
-## Para Arrancar:
+Incluye además una página "single page" que consume la API vía JavaScript
+(`/crud-single-page.html`).
+
+## Tecnologías utilizadas
+
+| Herramienta        | Versión         |
+|--------------------|-----------------|
+| Java (JDK)         | 25 (LTS)        |
+| Gradle             | 9.6.1           |
+| Javalin            | 7.2.2           |
+| Jetty (embebido)   | 12.1.x          |
+| MongoDB (driver)   | 5.5.1           |
+| Thymeleaf          | 3.1.3           |
+| Jackson            | 2.19.0          |
+| DataFaker          | 2.4.3           |
+| SLF4J              | 2.0.17          |
+| Docker / Compose   | —               |
+
+## Configuración
+
+La aplicación se configura mediante **variables de entorno**:
+
+| Variable     | Descripción                                   | Ejemplo                     |
+|--------------|-----------------------------------------------|-----------------------------|
+| `URL_MONGO`  | Cadena de conexión a MongoDB.                 | `mongodb://localhost:27017` |
+| `DB_NOMBRE`  | Nombre de la base de datos.                   | `pucmm`                     |
+| `PORT`       | Puerto del servidor (opcional, por def. 7000).| `7000`                      |
+
+## Cómo ejecutar
+
+### Opción A — Docker Compose (recomendada)
+
+Levanta MongoDB y la aplicación con un solo comando (no requiere tener Java ni
+MongoDB instalados, solo Docker):
+
+```bash
+docker compose up --build
+```
+
+Cuando termine, abre: <http://localhost:7000/>
+
+Para detener y borrar los datos:
+
+```bash
+docker compose down -v
+```
+
+> **Nota sobre la versión de MongoDB:** el `docker-compose.yml` usa `mongo:7`.
+> En algunos entornos/kernels la imagen `mongo:8` es inestable y el proceso
+> `mongod` termina abruptamente (crash `SIGSEGV`, *exit* 139), lo que provoca
+> errores 500 en la aplicación aunque la conexión esté bien configurada. Con
+> `mongo:7` el servicio es estable.
+
+### Opción B — Gradle (local)
+
+Requiere una instancia de MongoDB accesible. Define las variables de entorno y
+ejecuta:
+
+```bash
+export URL_MONGO="mongodb://localhost:27017"
+export DB_NOMBRE="pucmm"
+
+./gradlew run
+```
+
+> Gradle descargará automáticamente el JDK 25 mediante *toolchains* si no lo tienes instalado.
+
+### Generar el JAR ejecutable (fat JAR)
+
+```bash
+./gradlew shadowJar
+java -jar build/libs/crud-dns.jar
+```
+
+## Endpoints principales
+
+| Método | Ruta                              | Descripción                          |
+|--------|-----------------------------------|--------------------------------------|
+| GET    | `/api/estudiante/`                | Lista todos los estudiantes (JSON).  |
+| GET    | `/api/estudiante/{matricula}`     | Obtiene un estudiante por matrícula. |
+| POST   | `/api/estudiante/`                | Crea un estudiante (body JSON).      |
+| PUT    | `/api/estudiante/`                | Actualiza un estudiante (body JSON). |
+| DELETE | `/api/estudiante/{matricula}`     | Elimina un estudiante.               |
+| GET    | `/crud-simple/listar`             | CRUD tradicional (HTML/Thymeleaf).   |
+| GET    | `/crud-single-page.html`          | SPA que consume la API.              |
+| GET    | `/rutas`                          | Listado de todas las rutas (overview).|
+
+### Ejemplo con `curl`
+
+```bash
+# Crear
+curl -X POST http://localhost:7000/api/estudiante/ \
+  -H "Content-Type: application/json" \
+  -d '{"matricula":1001,"nombre":"Ana Perez","carrera":"Ingenieria"}'
+
+# Listar
+curl http://localhost:7000/api/estudiante/
+```
+
+## Estructura del proyecto
 
 ```
-gradlew run
-```
-## Probar:
+src/main/java/edu/pucmm/pw/
+├── Main.java                       # Configuración y arranque del servidor Javalin
+├── controladores/
+│   ├── ApiControlador.java         # Rutas de la API REST
+│   └── CrudTradicionalControlador.java  # Rutas del CRUD con plantillas
+├── entidades/
+│   └── Estudiante.java             # POJO / modelo
+├── servicios/
+│   ├── EstudianteServices.java     # Lógica de negocio (Singleton)
+│   └── MongoDbConexion.java        # Conexión a MongoDB (Singleton)
+└── util/
+    ├── BaseControlador.java        # Clase base de los controladores
+    ├── NoExisteEstudianteException.java
+    └── TablasMongo.java            # Nombres de las colecciones
 
-http://localhost:7000/
+src/main/resources/
+├── publico/                        # Archivos estáticos (SPA)
+└── templates/crud-tradicional/     # Plantillas Thymeleaf
+```
+
+## Notas de migración
+
+Este proyecto se actualizó desde Javalin 5 hasta **Javalin 7**.
+
+### Javalin 5 → 6
+
+- Las rutas pasaron a registrarse en la **fase de configuración** con
+  `config.router.apiBuilder(...)` (antes `app.routes(...)` tras iniciar el servidor).
+- CORS: `config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> rule.anyHost()))`.
+- Route overview: `config.bundledPlugins.enableRouteOverview("/rutas")`.
+- Plantillas: `config.fileRenderer(new JavalinThymeleaf())` (antes `JavalinRenderer.register(...)`).
+- El plugin Shadow migró al fork mantenido `com.gradleup.shadow`.
+
+### Javalin 6 → 7
+
+- El espacio de nombres de rutas cambió de `config.router` a **`config.routes`**
+  (`config.routes.apiBuilder(...)`).
+- El manejo de excepciones se registra directamente con
+  `config.routes.exception(MiExcepcion.class, (e, ctx) -> { ... })`.
+- El módulo `javalin-rendering` se dividió por motor de plantillas; ahora se usa
+  **`io.javalin:javalin-rendering-thymeleaf`** (la clase `JavalinThymeleaf` conserva su paquete).
+- En `StaticFileConfig`, el campo booleano `precompress` fue reemplazado por
+  `precompressMaxSize` (int); se eliminó su uso al estar en el valor por defecto.
+- Javalin 7 corre sobre **Jetty 12** y requiere **Java 17 como mínimo** (aquí usamos Java 25).
