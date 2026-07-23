@@ -13,17 +13,18 @@ Incluye además una página "single page" que consume la API vía JavaScript
 
 ## Tecnologías utilizadas
 
-| Herramienta        | Versión   |
-|--------------------|-----------|
-| Java (JDK)         | 25 (LTS)  |
-| Gradle             | 9.6.1     |
-| Javalin            | 6.7.0     |
-| MongoDB (driver)   | 5.5.1     |
-| Thymeleaf          | 3.1.3     |
-| Jackson            | 2.19.0    |
-| DataFaker          | 2.4.3     |
-| SLF4J              | 2.0.17    |
-| Docker / Compose   | —         |
+| Herramienta        | Versión         |
+|--------------------|-----------------|
+| Java (JDK)         | 25 (LTS)        |
+| Gradle             | 9.6.1           |
+| Javalin            | 7.2.2           |
+| Jetty (embebido)   | 12.1.x          |
+| MongoDB (driver)   | 5.5.1           |
+| Thymeleaf          | 3.1.3           |
+| Jackson            | 2.19.0          |
+| DataFaker          | 2.4.3           |
+| SLF4J              | 2.0.17          |
+| Docker / Compose   | —               |
 
 ## Configuración
 
@@ -123,13 +124,27 @@ src/main/resources/
 └── templates/crud-tradicional/     # Plantillas Thymeleaf
 ```
 
-## Notas de migración (Javalin 5 → 6)
+## Notas de migración
 
-Este proyecto se actualizó a Javalin 6. Los cambios de API más relevantes fueron:
+Este proyecto se actualizó desde Javalin 5 hasta **Javalin 7**.
 
-- Las rutas ahora se registran en la **fase de configuración** con
+### Javalin 5 → 6
+
+- Las rutas pasaron a registrarse en la **fase de configuración** con
   `config.router.apiBuilder(...)` (antes `app.routes(...)` tras iniciar el servidor).
 - CORS: `config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> rule.anyHost()))`.
 - Route overview: `config.bundledPlugins.enableRouteOverview("/rutas")`.
 - Plantillas: `config.fileRenderer(new JavalinThymeleaf())` (antes `JavalinRenderer.register(...)`).
 - El plugin Shadow migró al fork mantenido `com.gradleup.shadow`.
+
+### Javalin 6 → 7
+
+- El espacio de nombres de rutas cambió de `config.router` a **`config.routes`**
+  (`config.routes.apiBuilder(...)`).
+- El manejo de excepciones se registra directamente con
+  `config.routes.exception(MiExcepcion.class, (e, ctx) -> { ... })`.
+- El módulo `javalin-rendering` se dividió por motor de plantillas; ahora se usa
+  **`io.javalin:javalin-rendering-thymeleaf`** (la clase `JavalinThymeleaf` conserva su paquete).
+- En `StaticFileConfig`, el campo booleano `precompress` fue reemplazado por
+  `precompressMaxSize` (int); se eliminó su uso al estar en el valor por defecto.
+- Javalin 7 corre sobre **Jetty 12** y requiere **Java 17 como mínimo** (aquí usamos Java 25).

@@ -31,7 +31,7 @@ public class CrudTradicionalControlador extends BaseControlador {
     @Override
     public void aplicarRutas() {
         //
-        config.router.apiBuilder(()->{
+        config.routes.apiBuilder(()->{
 
             /**
              * Ejemplo de como agrupar los endpoint utilizados.
@@ -53,7 +53,7 @@ public class CrudTradicionalControlador extends BaseControlador {
                 });
             });
         });
-        config.router.apiBuilder(() -> {
+        config.routes.apiBuilder(() -> {
             path("/crud-simple/", () -> {
 
 

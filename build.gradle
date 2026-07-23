@@ -26,9 +26,9 @@ repositories {
 
 dependencies {
     // --- Javalin: micro-framework web ---
-    implementation 'io.javalin:javalin:6.7.0'
-    // Desde la versión 5.3 el renderizado de plantillas vive en un artefacto aparte.
-    implementation 'io.javalin:javalin-rendering:6.7.0'
+    implementation 'io.javalin:javalin:7.2.2'
+    // En Javalin 7 el módulo de renderizado se dividió por motor de plantillas.
+    implementation 'io.javalin:javalin-rendering-thymeleaf:7.2.2'
 
     // --- Logging (implementación simple de SLF4J) ---
     implementation 'org.slf4j:slf4j-simple:2.0.17'

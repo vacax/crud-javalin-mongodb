@@ -20,7 +20,7 @@ public class ApiControlador extends BaseControlador {
 
     @Override
     public void aplicarRutas() {
-        config.router.apiBuilder(() -> {
+        config.routes.apiBuilder(() -> {
             path("/api", () -> {
                 /**
                  * Ejemplo de una API REST, implementando el CRUD
@@ -62,12 +62,10 @@ public class ApiControlador extends BaseControlador {
             });
         });
 
-        //El manejo de excepciones se registra sobre el router en la configuración.
-        config.router.mount(router -> {
-            router.exception(NoExisteEstudianteException.class, (exception, ctx) -> {
-                ctx.status(404);
-                ctx.json("" + exception.getLocalizedMessage());
-            });
+        //El manejo de excepciones se registra directamente en la configuración de rutas.
+        config.routes.exception(NoExisteEstudianteException.class, (exception, ctx) -> {
+            ctx.status(404);
+            ctx.json("" + exception.getLocalizedMessage());
         });
     }
 }

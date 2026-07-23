@@ -17,7 +17,6 @@ public class Main {
                 staticFileConfig.hostedPath = "/";
                 staticFileConfig.directory = "/publico";
                 staticFileConfig.location = Location.CLASSPATH;
-                staticFileConfig.precompress = false;
                 staticFileConfig.aliasCheck = null;
             });
 
